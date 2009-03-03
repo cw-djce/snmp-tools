@@ -1,9 +1,16 @@
 #! /usr/bin/env ruby
+require 'rubygems'
 require 'time'
-require "timeout"
+require 'timeout'
+require 'mysql'
+require 'yaml'
 
-# Dave Evans wrote this bit (with minor modifications by me - the requires are
-# now above. SnmpdPassPersistAgent now also has an optional first argument):
+# Dave Evans wrote this bit. There are minor modifications by Craig Webster -
+# the requires are now above instead of spread through the code, 
+# SnmpdPassPersistAgent now has an optional first argument, and the OID value
+# can be set to a proc so it's calculated only when that OID is requested
+# (where previously it was calculated in do_prepare ie once for every request)
+
 # SnmpOid is a sortable numeric OID string
 class SnmpOid
   include Comparable
@@ -56,7 +63,11 @@ class SnmpTriple
   end
 
   def to_s
-    "#{@oid} = #{@type}: #{@value}"
+    "#{@oid} = #{@type}: #{value}"
+  end
+  
+  def value
+    @value.respond_to?(:call) ? @value.call : @value
   end
 end
 
